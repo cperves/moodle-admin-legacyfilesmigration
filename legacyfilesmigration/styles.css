@@ -1,0 +1,10 @@
+ .tool_legacyfilesmigration_migratetable .c0 { display: none; }
+.jsenabled .tool_legacyfilesmigration_migratetable .c0 { display: table-cell; }
+
+.tool_legacyfilesmigration_migratetable tr.selectedrow td { background-color: #ffeecc; }
+.tool_legacyfilesmigration_migratetable tr.unselectedrow td { background-color: white; }
+
+.tool_legacyfilesmigration_paginationform .hidden { display: none; }
+.legacyfilesmigration_log  { color: red; }
+.legacyfilesmigration_log_minor {color:maroon;}
+
