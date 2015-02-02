@@ -9,6 +9,7 @@
  * @author Celine Perves <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @license    http://www.cecill.info/licences/Licence_CeCILL_V2-en.html
+ * developped from the dev by Nicols Can https://moodle.org/mod/forum/discuss.php?d=210415
  */
 
 defined('MOODLE_INTERNAL') || die();
