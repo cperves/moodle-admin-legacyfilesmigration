@@ -13,7 +13,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/tablelib.php');
-require_once ($CFG->dirroot.'/local/toolslib.php');
 require_once ($CFG->dirroot.'/admin/tool/legacyfilesmigration/locallib.php');
 
 /**
