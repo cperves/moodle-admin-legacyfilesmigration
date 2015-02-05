@@ -13,7 +13,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/tablelib.php');
-require_once ($CFG->dirroot.'/admin/tool/legacyfilesmigration/locallib.php');
+require_once ($CFG->dirroot.'/'.$CFG->admin.'/tool/legacyfilesmigration/locallib.php');
 
 /**
  * Extends table_sql to provide a table of assignment submissions
@@ -37,12 +37,12 @@ class tool_legacyfilesmigration_courses_table extends table_sql implements rende
      * @param int $rowoffset The starting row for pagination
      */
     function __construct($perpage, $rowoffset=0) {
-        global $PAGE;
+        global $PAGE, $CFG;
         parent::__construct('tool_legacyfilesmigration_courses');
         $this->perpage = $perpage;
         $this->output = $PAGE->get_renderer('tool_legacyfilesmigration');
 
-        $this->define_baseurl(new moodle_url('/admin/tool/legacyfilesmigration/listnotmigrated.php'));
+        $this->define_baseurl(new moodle_url('/'.$CFG->admin.'/tool/legacyfilesmigration/listnotmigrated.php'));
 
         $this->anymigrateablecourses = tool_legacyfilesmigration_any_migrateable_courses();
 

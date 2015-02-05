@@ -20,7 +20,8 @@ define('ASSIGN_MAX_LEGACYFILES_MIGRATION_TIME_SECS', 0);
  * @return moodle_url
  */
 function tool_legacyfilesmigration_url($script, $params = array()) {
-    return new moodle_url('/admin/tool/legacyfilesmigration/' . $script . '.php', $params);
+	global $CFG;
+    return new moodle_url('/'.$CFG->admin.'/tool/legacyfilesmigration/' . $script . '.php', $params);
 }
 
 
@@ -43,16 +44,17 @@ class tool_legacyfilesmigration_batchoperationconfirm implements renderable {
      * @param stdClass $data - The data from the previous batch form
      */
     function __construct($data) {
+    	global $CFG;
         if (isset($data->migrateselected)) {
             $this->continuemessage = get_string('migrateselectedcount', 'tool_legacyfilesmigration', count(explode(',', $data->selectedcourses)));
-            $this->continueurl = new moodle_url('/admin/tool/legacyfilesmigration/batchmigrate.php', array('upgradeselected'=>'1', 'confirm'=>'1', 'sesskey'=>sesskey(), 'selected'=>$data->selectedcourses, 'selectedowners'=>$data->selectedowners));
+            $this->continueurl = new moodle_url('/'.$CFG->admin.'/tool/legacyfilesmigration/batchmigrate.php', array('upgradeselected'=>'1', 'confirm'=>'1', 'sesskey'=>sesskey(), 'selected'=>$data->selectedcourses, 'selectedowners'=>$data->selectedowners));
         } else if (isset($data->migrateall)) {
             if (!tool_legacyfilesmigration_any_migrateable_courses()) {
                 $this->continuemessage = get_string('noacoursestoupgrade', 'tool_legacyfilesmigration');
                 $this->continueurl = '';
             } else {
                 $this->continuemessage = get_string('migrateallconfirm', 'tool_legacyfilesmigration');
-                $this->continueurl = new moodle_url('/admin/tool/legacyfilesmigration/batchmigrate.php', array('migrateall'=>'1', 'confirm'=>'1', 'sesskey'=>sesskey()));
+                $this->continueurl = new moodle_url('/'.$CFG->admin.'/tool/legacyfilesmigration/batchmigrate.php', array('migrateall'=>'1', 'confirm'=>'1', 'sesskey'=>sesskey()));
             }
         }
     }
