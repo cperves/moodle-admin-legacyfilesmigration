@@ -59,15 +59,7 @@ class tool_legacyfilesmigration_batchoperationconfirm implements renderable {
         }
     }
 }
-/**
- * return enrolled reditingteacher for a given course
- * @param courseid the id of the gicen course
- * @return result set of $owners ->ownerusername
- **/
-function get_course_owners($courseid){
-	global $DB;
-	return $DB->get_records_sql('select distinct u.username from {role_assignments} ra INNER JOIN {user} as u on u.id=ra.userid inner join {role} r on r.id=ra.roleid inner join {user_enrolments} ue on ue.userid=u.id inner join {enrol} e on ue.enrolid=e.id inner join {context} ctx on ctx.id=ra.contextid and e.courseid=ctx.instanceid where ctx.instanceid=:courseid and r.shortname=:shortname and u.deleted=0',array('courseid'=>$courseid,'shortname'=>'editingteacher'));
-}
+
 
 /**
  * Class to encapsulate one of the functionalities that this plugin offers.
@@ -389,15 +381,4 @@ class legacyfiles_migrate_manager {
 
 
 	
-}
-/**
-* Cast an object to another class, keeping the properties, but changing the methods
-*
-* @param string $class Class name
-* @param object $object
-* @return object
-*/
-function casttoclass($class, $object)
-{
-	return unserialize(preg_replace('/^O:\d+:"[^"]++"/', 'O:' . strlen($class) . ':"' . $class . '"', serialize($object)));
 }

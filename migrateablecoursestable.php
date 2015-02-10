@@ -121,7 +121,8 @@ class tool_legacyfilesmigration_courses_table extends table_sql implements rende
      */
     function col_owner(stdClass $row) {
     	global $DB;
-    	$owners = get_course_owners($row->id);
+    	$coursecontext = context_course::instance($row->id);
+    	$owners = get_enrolled_users($coursecontext,'moodle/course:managefiles');
     	$owner_html='';
     	if($owners !== false && count($owners)>0){
     		foreach($owners as $owner){

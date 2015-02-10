@@ -56,12 +56,13 @@ $total = count($courseids);
 
 foreach ($courseids as $courseid) {
 	$ownerusername='';
+	$coursecontext = context_course::instance($courseid);
 	if(!$migrateallmode){
 		if(property_exists ( $ownerusernames , $courseid)){
 			$ownerusername=$ownerusernames->$courseid;
 		}
 	}else{
-		$owners = get_course_owners($courseid);
+		$owners = get_enrolled_users($coursecontext,'moodle/course:managefiles');
 		if($owners !== false && count($owners)==1){
 			$owner = array_pop($owners);
 			$ownerusername=$owner->username;
