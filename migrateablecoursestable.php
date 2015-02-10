@@ -75,8 +75,10 @@ class tool_legacyfilesmigration_courses_table extends table_sql implements rende
         // set the columns
         $this->define_columns($columns);
         $this->define_headers($headers);
+        $this->sortable(true,'course');
         $this->no_sorting('select');
         $this->no_sorting('owner');
+        
         
         
     }
