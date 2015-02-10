@@ -1,9 +1,10 @@
 <?php
 /**
  * This file contains the forms to create and edit an instance of this module
- *
- * @package   tool_legacyfilesmigration
- 
+  * @package    tool_legacyfilesmigration
+ * @copyright  2014 unistra  {@link http://unistra.fr}
+ * @author Celine Perves <cperves@unistra.fr>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
