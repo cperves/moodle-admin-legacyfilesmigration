@@ -188,9 +188,9 @@ class legacyfiles_migrate_manager {
 			if($fs->file_exists($usercontext->id, 'user', 'private', 0,
 					$foldername . $file->get_filepath(), $file->get_filename())) {
 					//file already exists in user private repository
-			$thefile = $fs->get_file($usercontext->id, 'user', 'private', 0,
+				$thefile = $fs->get_file($usercontext->id, 'user', 'private', 0,
 					$foldername . $file->get_filepath(), $file->get_filename());
-			return $thefile;
+				return $thefile;
 				
 			} else {
 				//file does not exists in user private repository so create it
@@ -210,6 +210,7 @@ class legacyfiles_migrate_manager {
 		//TODO backup course befoer starting
 		global $DB, $CFG, $USER;
 		require_once($CFG->libdir.'/filestorage/file_storage.php');
+		require_once($CFG->libdir.'/resourcelib.php');
 
 		// is the user the admin? admin check goes here
 		if (!is_siteadmin($USER->id)) {
@@ -264,6 +265,109 @@ class legacyfiles_migrate_manager {
 			$count += 1;
 		}
 		
+		//course legacy files will be removed after mod_resource treatment
+		
+		//looping on mod resource files on course
+		// this in order to replace files by alias files on user private repository		
+		$allactivities = get_array_of_activities($course->id);
+		foreach ($allactivities as $activity) {
+			//only working on mod resource files
+			if($activity->mod == "resource") {
+				//retrieve resource infos
+				$resource = $DB->get_record_sql('select r.* from {resource} r inner join {course_modules} as cm on cm.instance=r.id where cm.id=:cmid', array('cmid'=>$activity->cm));
+				$rescontext = context_module::instance($activity->cm);
+				//only work on resource linked to legacy files
+				if($resource->legacyfiles == RESOURCELIB_LEGACYFILES_ACTIVE){
+					$files = $fs->get_area_files($rescontext->id, 'mod_resource', 'content', 0, 'sortorder DESC, id ASC', true);
+					if (count($files) >= 1) {
+						$allfile=array();
+						foreach ($files as $file) {	
+							//exclude filepath with / and filename .
+							if($file->get_filepath()=='/' and $file->get_filename()=='.'){
+								continue;
+							}
+						
+							if($file->is_directory()){
+								//need to recursyvely retrieve all file as resources stored in user private repository
+								$includedfiles = $fs->get_directory_files($usercontext->id,'user','private',$file->get_itemid(),$foldername.$file->get_filepath(),true,false);
+								foreach($includedfiles as $includedfile ){
+									$allfile[] = $this->migrate_activity_file($includedfile , $user,'');
+								}
+								
+							}else{
+								$allfile[] = $this->migrate_activity_file($file, $user,$foldername);
+							}
+						}
+						//deleting mod_resource files for the current activity
+						try{
+							$fs->delete_area_files($rescontext->id, 'mod_resource', 'content', false);
+						}catch(file_exception $sfex){
+							$log .= '<div class=legacyfilesmigration_log>Error : '.$sfex->getMessage();
+							$log .= '<br>'.$sfex->getTraceAsString().'</div>';
+						}
+						
+						//looping on the user private files called by current mod resource
+						foreach ($allfile as $newfile) {
+			
+							$args = array();
+							$args['type'] = 'user';
+							$repos = repository::get_instances($args);
+							$userrepository = reset($repos);
+			
+							$originalrecord = array(
+									'contextid' => $newfile->get_contextid(),
+									'component' => $newfile->get_component(),
+									'filearea'  => $newfile->get_filearea(),
+									'itemid'    => $newfile->get_itemid(),
+									'filepath'  => $newfile->get_filepath(),
+									'filename'  => $newfile->get_filename(),
+							);
+							//create an alias file on the existing file on user private repository
+							$module_filepath = (0 === strpos($newfile->get_filepath(), $foldername)? substr($newfile->get_filepath(), strlen($foldername)) : $newfile->get_filepath());
+							$module_filepath = empty($module_filepath)?'/':$module_filepath;
+							//zip file while have sortorder to -1
+							$sortorder = $newfile->get_sortorder();
+							$sortorder+=1;
+							$mimes = get_mimetypes_array();
+							//pass sortorder to zip files because of case of site hosting and residual zip file unziped but not deleted
+							if($newfile->get_mimetype() == $mimes['zip']['type'] || $newfile->get_mimetype() == $mimes['tgz']['type'] || $newfile->get_mimetype() == $mimes['gtar']['type'] || $newfile->get_mimetype() == $mimes['gz']['type'] || $newfile->get_mimetype() == $mimes['gzip']['type'] || $newfile->get_mimetype() == $mimes['hqx']['type'] || $newfile->get_mimetype() == $mimes['tar']['type']){
+								$sortorder-=1;
+							}
+							//sortorder by incremented to prevent negative values when decrement. Negative values are transformed to positive values when editing and registering resource
+							$newfilerecord = array(
+									'contextid' => $rescontext->id,
+									'component' => 'mod_resource',
+									'filearea'  => 'content',
+									'itemid'    => 0,
+									'filepath'  => $module_filepath,
+									'filename'  => $newfile->get_filename(),
+									'sortorder' => $sortorder,
+							);
+							//if site hosting and never full followed, all necessary files are not filled in files tables for resource
+							//in legacy files case they will be migrated when consulted threw resourcelib_try_file_migration (resourcelib.php)
+							//need to follow folders
+							$ref = $fs->pack_reference($originalrecord);
+							try{
+								if(!$newfile->is_directory()){
+									if(!$fs->file_exists($newfilerecord['contextid'], $newfilerecord['component'], $newfilerecord['filearea'], $newfilerecord['itemid'], $newfilerecord['filepath'], $newfilerecord['filename'])){
+										$newstoredfile = $fs->create_file_from_reference($newfilerecord, $userrepository->id, $ref);
+									}
+								}else{
+									/*if(!$fs->file_exists($newfilerecord['contextid'], $newfilerecord['component'], $newfilerecord['filearea'], $newfilerecord['itemid'], $newfilerecord['filepath'], '.')){
+										$newstoredfile = $fs->create_directory($newfilerecord['contextid'], $newfilerecord['component'], $newfilerecord['filearea'], $newfilerecord['itemid'], $newfilerecord['filepath']);
+									}*/
+								}
+							}catch(stored_file_creation_exception $sfex){
+								$log .= '<div class=legacyfilesmigration_log>Error while migrating file mod resource storedfilenotcreated : '.$sfex->getMessage();
+								$log .= '<br>'.$sfex->getTraceAsString().'</div>';
+							}
+						}
+						$resource->legacyfiles = RESOURCELIB_LEGACYFILES_NO;
+						$DB->update_record('resource', $resource);
+					}
+				}
+			}
+		}
 		//deleting course legacy area
 		//in case of fail, course will have again legecy files
 		if ($count) {
@@ -275,100 +379,6 @@ class legacyfiles_migrate_manager {
 			}
 		}
 		$log .= "<br>";
-		
-		//looping on mod resource files on course
-		// this in order to replace files by alias files on user private repository		
-		$allactivities = get_array_of_activities($course->id);
-		foreach ($allactivities as $activity) {
-			//only working on mod resource files
-			if($activity->mod == "resource") {
-				$rescontext = context_module::instance($activity->cm);
-				$files = $fs->get_area_files($rescontext->id, 'mod_resource', 'content', 0, 'sortorder DESC, id ASC', true);
-				if (count($files) >= 1) {
-					$allfile=array();
-					foreach ($files as $file) {
-						//exclude filepath with / and filename .
-						if($file->get_filepath()=='/' and $file->get_filename()=='.'){
-							continue;
-						}
-						if($file->is_directory()){
-							//need to recursyvely retrieve all file as resources stored in user private repository
-							$includedfiles = $fs->get_directory_files($usercontext->id,'user','private',$file->get_itemid(),$foldername.$file->get_filepath(),true,false);
-							foreach($includedfiles as $includedfile ){
-								$allfile[] = $this->migrate_activity_file($includedfile , $user,'');
-							}
-							
-						}else{
-							$allfile[] = $this->migrate_activity_file($file, $user,$foldername);
-						}
-		
-					}
-					//deleting mod_resource files for the current activity
-					try{
-						$fs->delete_area_files($rescontext->id, 'mod_resource', 'content', false);
-					}catch(file_exception $sfex){
-						$log .= '<div class=legacyfilesmigration_log>Error : '.$sfex->getMessage();
-						$log .= '<br>'.$sfex->getTraceAsString().'</div>';
-					}
-					//looping on the user private files called by current mod resource
-					foreach ($allfile as $newfile) {
-		
-						$args = array();
-						$args['type'] = 'user';
-						$repos = repository::get_instances($args);
-						$userrepository = reset($repos);
-		
-						$originalrecord = array(
-								'contextid' => $newfile->get_contextid(),
-								'component' => $newfile->get_component(),
-								'filearea'  => $newfile->get_filearea(),
-								'itemid'    => $newfile->get_itemid(),
-								'filepath'  => $newfile->get_filepath(),
-								'filename'  => $newfile->get_filename(),
-						);
-						//create an alias file on the existing file on user private repository
-						$module_filepath = (0 === strpos($newfile->get_filepath(), $foldername)? substr($newfile->get_filepath(), strlen($foldername)) : $newfile->get_filepath());
-						$module_filepath = empty($module_filepath)?'/':$module_filepath;
-						//zip file while have sortorder to -1
-						$sortorder = $newfile->get_sortorder();
-						$sortorder+=1;
-						$mimes = get_mimetypes_array();
-						//pass sortorder to zip files because of case of site hosting and residual zip file unziped but not deleted
-						if($newfile->get_mimetype() == $mimes['zip']['type'] || $newfile->get_mimetype() == $mimes['tgz']['type'] || $newfile->get_mimetype() == $mimes['gtar']['type'] || $newfile->get_mimetype() == $mimes['gz']['type'] || $newfile->get_mimetype() == $mimes['gzip']['type'] || $newfile->get_mimetype() == $mimes['hqx']['type'] || $newfile->get_mimetype() == $mimes['tar']['type']){
-							$sortorder-=1;
-						}
-						//sortorder by incremented to prevent negative values when decrement. Negative values are transformed to positive values when editing and registering resource
-						$newfilerecord = array(
-								'contextid' => $rescontext->id,
-								'component' => 'mod_resource',
-								'filearea'  => 'content',
-								'itemid'    => 0,
-								'filepath'  => $module_filepath,
-								'filename'  => $newfile->get_filename(),
-								'sortorder' => $sortorder,
-						);
-						//if site hosting and never full followed, all necessary files are not filled in files tables for resource
-						//in legacy files case they will be migrated when consulted threw resourcelib_try_file_migration (resourcelib.php)
-						//need to follow folders
-						$ref = $fs->pack_reference($originalrecord);
-						try{
-							if(!$newfile->is_directory()){
-								if(!$fs->file_exists($newfilerecord['contextid'], $newfilerecord['component'], $newfilerecord['filearea'], $newfilerecord['itemid'], $newfilerecord['filepath'], $newfilerecord['filename'])){
-									$newstoredfile = $fs->create_file_from_reference($newfilerecord, $userrepository->id, $ref);
-								}
-							}else{
-								/*if(!$fs->file_exists($newfilerecord['contextid'], $newfilerecord['component'], $newfilerecord['filearea'], $newfilerecord['itemid'], $newfilerecord['filepath'], '.')){
-									$newstoredfile = $fs->create_directory($newfilerecord['contextid'], $newfilerecord['component'], $newfilerecord['filearea'], $newfilerecord['itemid'], $newfilerecord['filepath']);
-								}*/
-							}
-						}catch(stored_file_creation_exception $sfex){
-							$log .= '<div class=legacyfilesmigration_log>Error while migrating file mod resource storedfilenotcreated : '.$sfex->getMessage();
-							$log .= '<br>'.$sfex->getTraceAsString().'</div>';
-						}
-					}
-				}
-			}
-		}
 		//-----------------------
 		// End Migration process
 		//----------------------------------------
