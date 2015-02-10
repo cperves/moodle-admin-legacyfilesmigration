@@ -35,7 +35,8 @@ class tool_legacyfilesmigration_batchoperations_form extends moodleform {
         // visible elements
         $mform->addElement('hidden', 'selectedcourses', '', array('class'=>'selectedcourses'));
         $mform->addElement('hidden', 'selectedowners', '', array('class'=>'selectedowners'));
-
+        $mform->setType('selectedcourses', PARAM_RAW);
+        $mform->setType('selectedowners', PARAM_RAW);
         $mform->addElement('submit', 'migrateselected', get_string('migrateselected', 'tool_legacyfilesmigration'));
         $mform->addElement('submit', 'migrateall', get_string('migrateall', 'tool_legacyfilesmigration'));
     }
