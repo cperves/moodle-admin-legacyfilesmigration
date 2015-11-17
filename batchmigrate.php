@@ -35,7 +35,8 @@ if (!$confirm) {
     die();
 }
 raise_memory_limit(MEMORY_EXTRA);
-session_get_instance()->write_close(); // release session
+$session_instance = new \core\session\manager();
+$session_instance->write_close(); // release session
 
 echo $renderer->header();
 echo $renderer->heading(get_string('batchmigrate', 'tool_legacyfilesmigration'));

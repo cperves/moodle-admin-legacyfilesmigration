@@ -13,6 +13,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2015013001; // The current plugin version (Date: YYYYMMDDXX)
+$plugin->version   = 2015111600; // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2012112900; // Requires this Moodle version
 $plugin->component = 'tool_legacyfilesmigration'; // Full name of the plugin (used for diagnostics)
