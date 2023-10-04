@@ -1,9 +1,24 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * Defines the renderer for the legacy files migration helper plugin.
  *
  * @package    tool_legacyfilesmigration
-  * @copyright  2014 unistra  {@link http://unistra.fr}
+ * @copyright  2014 unistra  {@link http://unistra.fr}
  * @author Celine Perves <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -76,11 +91,13 @@ class tool_legacyfilesmigration_renderer extends plugin_renderer_base {
      * @param tool_assignmentupgrade_batchoperationconfirm $confirm Wrapper class to determine the continue message and url
      * @return string html to output.
      */
-    public function render_tool_legacyfilesmigration_batchoperationconfirm(tool_legacyfilesmigration_batchoperationconfirm $confirm) {
+    public function render_tool_legacyfilesmigration_batchoperationconfirm(
+            tool_legacyfilesmigration_batchoperationconfirm $confirm) {
         $output = '';
 
         if ($confirm->continueurl) {
-            $output .= $this->output->confirm($confirm->continuemessage, $confirm->continueurl, tool_legacyfilesmigration_url('listnotmigrated'));
+            $output .= $this->output->confirm($confirm->continuemessage, $confirm->continueurl,
+                    tool_legacyfilesmigration_url('listnotmigrated'));
         } else {
             $output .= $this->output->box($confirm->continuemessage);
             $output .= $this->output->continue_button(tool_assignmentupgrade_url('listnotmigrated'));
@@ -95,13 +112,14 @@ class tool_legacyfilesmigration_renderer extends plugin_renderer_base {
      * @param tool_legacyfilesmigration_pagination_form $paginationform Form which contains the preferences for paginating the table
      * @return string html to output.
      */
-    public function course_list_page(tool_legacyfilesmigration_courses_table $courses, tool_legacyfilesmigration_batchoperations_form $batchform, tool_legacyfilesmigration_pagination_form $paginationform) {
+    public function course_list_page(tool_legacyfilesmigration_courses_table $courses,
+            tool_legacyfilesmigration_batchoperations_form $batchform,
+            tool_legacyfilesmigration_pagination_form $paginationform) {
         $output = '';
         $output .= $this->header();
         $this->page->requires->js_init_call('M.tool_legacyfilesmigration.init_migrate_table', array());
         $this->page->requires->string_for_js('nocoursesselected', 'tool_legacyfilesmigration');
         $this->page->requires->string_for_js('coursidnotcollapse', 'tool_legacyfilesmigration');
-        
 
         $output .= $this->heading(get_string('notmigratedtitle', 'tool_legacyfilesmigration'));
         $output .= $this->box(get_string('notmigratedintro', 'tool_legacyfilesmigration'));
@@ -140,13 +158,15 @@ class tool_legacyfilesmigration_renderer extends plugin_renderer_base {
         $output .= $this->container_start('tool_legacyfilesmigration_result');
         $output .= $this->container(get_string('migratecoursesummary', 'tool_legacyfilesmigration', $coursesummary));
         if (!$success) {
-            $output .= $this->container(get_string('migrationfailed', 'tool_legacyfilesmigration', $log),'legacyfilesmigration_log');
+            $output .= $this->container(get_string('migrationfailed', 'tool_legacyfilesmigration', $log),
+                    'legacyfilesmigration_log');
         } else {
             $output .= $this->container(get_string('migratecoursesuccess', 'tool_legacyfilesmigration'));
-            if(!empty($log)){
-            	$output .= $this->container('logs = '.$log);
+            if (!empty($log)) {
+                $output .= $this->container('logs = '.$log);
             }
-            $output .= $this->container(html_writer::link(new moodle_url('/course/view.php', array('id'=>$coursesummary->id)) ,get_string('viewcourse', 'tool_legacyfilesmigration')));
+            $output .= $this->container(html_writer::link(new moodle_url('/course/view.php', array('id' => $coursesummary->id)) ,
+                    get_string('viewcourse', 'tool_legacyfilesmigration')));
         }
         $output .= $this->container_end();
 
@@ -224,6 +244,7 @@ class tool_legacyfilesmigration_renderer extends plugin_renderer_base {
      * @return string html to output.
      */
     public function back_to_index() {
-        return $this->end_of_page_link(tool_legacyfilesmigration_url('listnotmigrated'), get_string('backtoindex', 'tool_legacyfilesmigration'));
+        return $this->end_of_page_link(
+                tool_legacyfilesmigration_url('listnotmigrated'), get_string('backtoindex', 'tool_legacyfilesmigration'));
     }
 }

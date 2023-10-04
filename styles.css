@@ -1,4 +1,4 @@
- .tool_legacyfilesmigration_migratetable .c0 { display: none; }
+.tool_legacyfilesmigration_migratetable .c0 { display: none; }
 .jsenabled .tool_legacyfilesmigration_migratetable .c0 { display: table-cell; }
 
 .tool_legacyfilesmigration_migratetable tr.selectedrow td { background-color: #ffeecc; }
@@ -8,3 +8,4 @@
 .legacyfilesmigration_log  { color: red; }
 .legacyfilesmigration_log_minor {color:maroon;}
 
+.legacyfilesmigrationform div{display:table-cell;float:none;clear:none;width:auto;margin:0;line-height:2;}

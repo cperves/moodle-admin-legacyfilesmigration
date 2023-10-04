@@ -13,23 +13,29 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
-
 /**
- * Version details.
+ * Privacy Subsystem implementation for tool_legacyfilesmigration
  *
- * @package    tool
- * @subpackage legacy files migration
- * @copyright  2017 unistra  {@link http://unistra.fr}
- * @author Celine Perves <cperves@unistra.fr>
+ * @package    local_zz_last_actions
+ * @copyright  2019 Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * coursefiles copy inpired by the script by Nicolas Can https://moodle.org/mod/forum/discuss.php?d=210415
  */
-
+namespace tool_legacyfilesmigration\privacy;
 defined('MOODLE_INTERNAL') || die();
-
-$plugin->version   = 2023053000;
-$plugin->requires  = 2022041904;
-$plugin->component = 'tool_legacyfilesmigration';
-$plugin->release = '2.0.0';
-$plugin->maturity   = MATURITY_STABLE;
+/**
+ * Privacy Subsystem for tool_legacyfilesmigration implementing null_provider.
+ *
+ * @copyright  2019 Céline Pervès <cperves@unistra.fr>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class provider implements \core_privacy\local\metadata\null_provider {
+    /**
+     * Get the language string identifier with the component's language
+     * file to explain why this plugin stores no data.
+     *
+     * @return  string
+     */
+    public static function get_reason() : string {
+        return 'privacy:metadata';
+    }
+}
